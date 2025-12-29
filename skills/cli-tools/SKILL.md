@@ -1,31 +1,50 @@
 ---
 name: cli-tools
 description: Standard conventions for designing, implementing, releasing, and distributing Tim’s macOS/Unix CLI tools (especially those published via Homebrew). Use when creating a new CLI tool, reviewing CLI UX, or upgrading existing tools to a consistent standard.
-compatibility: macOS + Unix-like shells; assumes git and Homebrew for distribution.
+compatibility: macOS + Unix-like shells; assumes git, and Homebrew for distribution.
+allowed-tools: Bash(git:*) Bash(gh:*)
 metadata:
   author: timsearle
-  version: "1.0"
+  version: "1.1"
 ---
 
 # CLI tool conventions (macOS / Unix)
 
-This skill defines how Tim’s CLI tools should be designed, implemented, released, and distributed (Homebrew tap), aiming for consistent, idiomatic UX across all tools.
+Use this skill as a **complete recipe** when asked to build a new CLI tool, or when upgrading/reviewing an existing one for consistency.
+
+If you need deeper details, also consult:
+- Homebrew publishing reference: `references/homebrew.md`
+- UX review checklist: `references/ux-checklist.md`
+- Templates: `assets/`
 
 ## Goals
 
 - **Unix-y, composable tools**: sensible defaults, scripts well, works with pipes.
-- **Consistent UX across repos**: same flag patterns, same help structure, same exit behavior.
+- **Consistent UX across repos**: same command/flag patterns, same help structure, same exit behavior.
 - **Homebrew-first distribution**: predictable install name, stable release assets, formula updates automated.
-- **Continuous improvement**: when any repo improves the template, we update this skill and then upgrade existing tools.
+- **Continuous improvement**: when any tool improves the template, we update this skill and then upgrade existing tools.
+
+## Activation cues (when to use this skill)
+
+Use this skill when the user mentions any of:
+
+- “build a CLI tool”, “create a command”, “make a tool installable via Homebrew”
+- commands/subcommands/flags/help/version/exit codes
+- release assets, GitHub releases, Homebrew formulae
 
 ## 1) Naming and command structure
 
 - **Binary name**: lowercase, hyphen-separated (e.g. `dependency-graph`).
-- **Repo name**: may be longer (e.g. `swift-dependency-graph`), but the installed command should be short and memorable.
+- **Repo name** can be longer, but the installed command should be short and memorable.
 - Prefer **subcommands** for distinct actions (e.g. `graph`, `diff`, `validate`).
 - Prefer **nouns for objects**, **verbs for actions**:
   - `tool graph <path>`
   - `tool diff <old> <new>`
+
+## 1a) Provide a consistent “shape” across tools
+
+- Global flags: `--help`, `--version`, optionally `--verbose` / `--debug`.
+- Prefer a single “primary” subcommand if the tool has one main job (still keep future room for more).
 
 ## 2) Help, usage, and discoverability
 
@@ -74,7 +93,7 @@ Conventions (must be consistent across tools):
 
 ## 7) Makefile conventions (developer UX)
 
-If a Makefile exists, include a `help` default target similar to `swift-dependency-graph`:
+If a Makefile exists, include a `help` default target that prints usage and common journeys:
 
 - `make help` shows the main workflows.
 - Provide:
@@ -84,17 +103,20 @@ If a Makefile exists, include a `help` default target similar to `swift-dependen
 
 ## 8) Release + Homebrew distribution (pattern)
 
-Use `swift-dependency-graph` + `homebrew-tap` as the baseline pattern:
+- Distribution is **Homebrew-first** via your tap repo:
+  - https://github.com/timsearle/homebrew-tap
 
 - Release a **zip asset** per platform/arch (at minimum `macos-arm64` if that’s the target).
-- The zip contains a single executable (can have a different internal name), and the Homebrew formula installs it as the canonical lowercase command name.
-  - Example formula behavior:
-    - zip contains `DependencyGraph`
-    - formula installs `dependency-graph`
+- The zip contains a single executable (internal name can differ), and the Homebrew formula installs it as the canonical lowercase command name.
 - Homebrew formula requirements:
-  - `url`, `sha256`, `version` lines are present in standard format so the update workflow can patch them.
+  - `url`, `sha256`, `version` lines exist in standard format so automation can patch them.
   - `test do` runs `tool --help`.
-- Automate formula updates by dispatching `timsearle/homebrew-tap`’s `update-formula.yml` from the releasing repo.
+- Automate formula updates by dispatching the tap repo’s update workflow from the releasing repo.
+
+Details + templates:
+- `references/homebrew.md`
+- `assets/homebrew-formula.rb.tmpl`
+- `assets/release-workflow-notes.md`
 
 ## 9) Repository docs checklist (README)
 

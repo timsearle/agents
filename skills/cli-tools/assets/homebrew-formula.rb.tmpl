@@ -1,0 +1,16 @@
+class ToolName < Formula
+  desc "One-line description"
+  homepage "https://github.com/timsearle/<repo>"
+  url "https://github.com/timsearle/<repo>/releases/download/vX.Y.Z/<tool>-macos-arm64.zip"
+  sha256 "<sha256>"
+  version "X.Y.Z"
+  license "<SPDX>"
+
+  def install
+    bin.install "ToolName" => "tool-name"
+  end
+
+  test do
+    system "#{bin}/tool-name", "--help"
+  end
+end
