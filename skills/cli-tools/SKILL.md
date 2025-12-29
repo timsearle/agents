@@ -1,4 +1,13 @@
-# Skill: CLI tool conventions (macOS / Unix)
+---
+name: cli-tools
+description: Standard conventions for designing, implementing, releasing, and distributing Tim’s macOS/Unix CLI tools (especially those published via Homebrew). Use when creating a new CLI tool, reviewing CLI UX, or upgrading existing tools to a consistent standard.
+compatibility: macOS + Unix-like shells; assumes git and Homebrew for distribution.
+metadata:
+  author: timsearle
+  version: "1.0"
+---
+
+# CLI tool conventions (macOS / Unix)
 
 This skill defines how Tim’s CLI tools should be designed, implemented, released, and distributed (Homebrew tap), aiming for consistent, idiomatic UX across all tools.
 

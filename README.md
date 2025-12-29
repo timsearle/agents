@@ -3,7 +3,7 @@
 Central place for Tim’s agent guidance:
 
 - Canonical Copilot instructions: [`.github/copilot-instructions.md`](./.github/copilot-instructions.md)
-- Reusable “skills” for agentic tooling: [`skills/`](./skills)
+- Reusable “skills” for agentic tooling: [`skills/`](./skills) (AgentSkills-style folders with `SKILL.md`)
 
 ## Intended usage
 
