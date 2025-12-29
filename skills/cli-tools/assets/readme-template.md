@@ -5,10 +5,14 @@ One-sentence description.
 ## Build
 
 ```bash
-# Example
-make release
-# or
-<ecosystem build command>
+# Debug build
+swift build
+
+# Release build
+swift build -c release
+
+# Tests
+swift test
 ```
 
 ## Install (Homebrew)

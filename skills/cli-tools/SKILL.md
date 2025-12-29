@@ -32,6 +32,20 @@ Use this skill when the user mentions any of:
 - commands/subcommands/flags/help/version/exit codes
 - release assets, GitHub releases, Homebrew formulae
 
+## Technology choices (standard)
+
+For Tim’s CLI tools, default to:
+
+- **Swift Package Manager** (SwiftPM) for builds/tests/releases
+- **swift-argument-parser** for CLI parsing, subcommands, help, and flags
+
+Conventions when using swift-argument-parser:
+
+- Model the CLI with `ParsableCommand` + nested `Subcommand`s.
+- Prefer `@Argument` for primary inputs and `@Option`/`@Flag` for configuration.
+- Use descriptive long option names; only add short names when they’re truly standard.
+- Surface expected errors as clean messages + non-zero exit (avoid stack traces by default).
+
 ## 1) Naming and command structure
 
 - **Binary name**: lowercase, hyphen-separated (e.g. `dependency-graph`).
@@ -93,13 +107,15 @@ Conventions (must be consistent across tools):
 
 ## 7) Makefile conventions (developer UX)
 
-If a Makefile exists, include a `help` default target that prints usage and common journeys:
+If a Makefile exists, it should wrap **developer build/test/release hygiene only** (not “run the tool” workflows).
 
-- `make help` shows the main workflows.
-- Provide:
-  - `make build`, `make release`, `make test`, `make clean`
-  - Convenience targets for common journeys (e.g. `make html-fast`), but keep them opinionated and documented.
-- Makefile should primarily be a convenience wrapper; the CLI itself remains the canonical interface.
+- Default target: `make help` prints available targets.
+- Provide only the essentials:
+  - `make build` (debug)
+  - `make release` (release build)
+  - `make test`
+  - `make clean`
+- Do **not** add targets that effectively become a second CLI (e.g. `make html-fast`, `make analyze`, etc.). The CLI remains the canonical interface.
 
 ## 8) Release + Homebrew distribution (pattern)
 

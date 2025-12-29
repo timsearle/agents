@@ -2,6 +2,11 @@
 
 Use this as a fast review list when creating/upgrading a CLI tool.
 
+## Technology
+
+- [ ] Built with **SwiftPM**.
+- [ ] Uses **swift-argument-parser**.
+
 ## Commands
 
 - [ ] Binary name is lowercase + hyphenated.
