@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Swift toolchain
+        run: |
+          set -euo pipefail
+          swift --version
+      - name: Swift test
+        run: swift test

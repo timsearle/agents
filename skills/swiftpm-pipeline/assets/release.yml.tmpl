@@ -1,0 +1,128 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next minor tag
+        id: ver
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+
+          EXISTING=$(git tag --points-at HEAD | grep '^v' | sort -Vr | head -n 1 || true)
+          if [ -n "${EXISTING}" ]; then
+            echo "tag=${EXISTING}" >> "$GITHUB_OUTPUT"
+            echo "version=${EXISTING#v}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          LATEST=$(git tag -l 'v*' --sort=-v:refname | head -n 1 || true)
+          if [ -z "${LATEST}" ]; then
+            LATEST="v0.0.0"
+          fi
+
+          RAW="${LATEST#v}"
+          IFS='.' read -r MAJOR MINOR PATCH <<<"${RAW}"
+          : "${MAJOR:?}" "${MINOR:?}" "${PATCH:?}"
+
+          NEXT_MINOR=$((MINOR + 1))
+          NEW_TAG="v${MAJOR}.${NEXT_MINOR}.0"
+
+          echo "tag=${NEW_TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${NEW_TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "6.1"
+
+      - name: Build (release)
+        run: swift build -c release
+
+      - name: Package
+        id: pkg
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          # Set these per-repo:
+          TOOL="<tool-name>"
+          ASSET="${TOOL}-macos-arm64.zip"
+
+          BIN_DIR="$(swift build -c release --show-bin-path)"
+
+          mkdir -p dist
+          cp "${BIN_DIR}/${TOOL}" "dist/${TOOL}"
+          chmod +x "dist/${TOOL}"
+          (cd dist && zip -qry "../${ASSET}" "${TOOL}")
+
+          SHA=$(shasum -a 256 "${ASSET}" | awk '{print $1}')
+
+          echo "asset=${ASSET}" >> "$GITHUB_OUTPUT"
+          echo "sha256=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release (immutable)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.pkg.outputs.tag }}
+          ASSET: ${{ steps.pkg.outputs.asset }}
+        run: |
+          set -euo pipefail
+
+          if ! gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release create "${TAG}" --generate-notes --target "${GITHUB_SHA}"
+          fi
+
+          if gh release view "${TAG}" --json assets --jq '.assets[].name' | grep -Fx "${ASSET}" >/dev/null; then
+            echo "Release asset already exists; refusing to overwrite."
+            exit 0
+          fi
+
+          gh release upload "${TAG}" "${ASSET}"
+
+      - name: Trigger Homebrew tap update
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          SHA256: ${{ steps.pkg.outputs.sha256 }}
+          VERSION: ${{ steps.pkg.outputs.version }}
+          TAG: ${{ steps.pkg.outputs.tag }}
+        run: |
+          set -euo pipefail
+
+          # Set these per-repo:
+          FORMULA="<formula>"          # e.g. tool-name
+          REPO="timsearle/<repo>"      # e.g. timsearle/tool-name
+          ASSET="<tool>-macos-arm64.zip"
+
+          URL="https://github.com/${REPO}/releases/download/${TAG}/${ASSET}"
+
+          gh workflow run update-formula.yml \
+            -R timsearle/homebrew-tap \
+            -f formula="${FORMULA}" \
+            -f url="${URL}" \
+            -f sha256="${SHA256}" \
+            -f version="${VERSION}" \
+            -f branch=main
+
+          sleep 5
+          RUN_ID=$(gh run list -R timsearle/homebrew-tap --workflow update-formula.yml --limit 1 --json databaseId --jq '.[0].databaseId')
+          gh run watch -R timsearle/homebrew-tap "${RUN_ID}" --exit-status
