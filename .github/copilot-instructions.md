@@ -4,6 +4,7 @@
 - **Small, atomic commits**: each commit should represent one logical change and be easy to review/revert.
 - **Tests must pass before commit**: never commit if the full test suite is failing.
 - **Prove behavior with tests**: use **unit tests** for logic and **integration/behaviour tests** for end-to-end confidence.
+- **No direct commits to `main` on `timsearle/cloudflare`**: always work on a branch and open a pull request.
 
 ## Engineering standards
 - **Prefer strong types (or equivalents)** to encode invariants (e.g., TypeScript/Flow types, Kotlin/Swift/Rust types, or runtime schemas/validators where needed).
