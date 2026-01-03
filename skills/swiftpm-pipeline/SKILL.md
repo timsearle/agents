@@ -1,29 +1,31 @@
 ---
 name: swiftpm-pipeline
-description: Standard CI + release + Homebrew pipeline for Tim’s SwiftPM packages.
+description: Standard CI + release + Homebrew pipeline for Tim's SwiftPM packages.
 compatibility: GitHub Actions; SwiftPM packages (CLI or libraries).
 allowed-tools: Bash(git:*) Bash(gh:*)
 metadata:
   author: timsearle
-  version: "0.1"
+  version: "0.2"
 ---
 
 # SwiftPM pipeline conventions
 
 Use this skill when setting up or standardising CI/release automation for a Swift Package.
 
+For CLI-specific conventions (naming, flags, help output), see also: `$cli-tools`
+
 ## Goals
 
 - CI runs `swift test` on push/PR.
 - Release workflow builds a **zip asset** containing the executable at the zip root (for Homebrew).
 - Releases are treated as **immutable** (never overwrite assets for an existing tag).
-- Homebrew formula updates are automated via `timsearle/homebrew-tap`’s `update-formula.yml`.
+- Homebrew formula updates are automated via `timsearle/homebrew-tap`'s `update-formula.yml`.
 
 ## Defaults
 
 - CI runner: `macos-latest`
 - Release runner: `macos-14`
-- Swift: use `swift-actions/setup-swift@v2` pinned to `swift-version: "6.1"` (adjust if the repo’s `swift-tools-version` requires newer).
+- Swift: use `swift-actions/setup-swift@v2` pinned to `swift-version: "6.1"` (adjust if the repo's `swift-tools-version` requires newer).
 - Release trigger: **manual** (`workflow_dispatch`) to avoid accidental version churn.
 
 ## Required files (copy templates)
