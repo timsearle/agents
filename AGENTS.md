@@ -12,6 +12,7 @@ These conventions apply to all of Tim's projects unless overridden by project-sp
 - **Prefer strong types (or equivalents)** to encode invariants (e.g., TypeScript/Flow types, Kotlin/Swift/Rust types, or runtime schemas/validators where needed).
 - Keep changes **minimal and surgical**; avoid drive-by refactors.
 - When uncertain, **add/adjust tests first** to pin down expected behavior.
+- **Always check application logs** during development (console logs, crash reports, warnings). Fix or document any warnings before considering work complete.
 
 ## Work approach
 - **Break down tasks** into small steps and take initiative: propose the next steps, execute, and keep the work moving.
