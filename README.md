@@ -14,6 +14,7 @@ Central repository for Tim's agent instructions and skills, following the [Agent
 - **[cli-tools](./skills/cli-tools/)** — Conventions for macOS/Unix CLI tools and Homebrew distribution
 - **[swiftpm-pipeline](./skills/swiftpm-pipeline/)** — CI + release + Homebrew pipeline for SwiftPM packages
 - **[contribute-conventions](./skills/contribute-conventions/)** — Add reusable conventions back to this repository
+- **[liquid-glass](./skills/liquid-glass/)** — Adopt Apple Liquid Glass accurately (design + SwiftUI patterns)
 
 ## Quick Start
 
