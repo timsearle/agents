@@ -47,6 +47,23 @@ If the app uses standard SwiftUI structures (e.g., `NavigationStack`, `TabView`,
 
 - If you see legacy code like `.toolbarBackground(...)`, `.presentationBackground(...)`, heavy `.background(Color...)` on navigation chrome, prefer removing/relaxing it for Liquid Glass-era SDKs.
 
+### 1a) Toolbars: new Liquid Glass behaviors (grouping + icons)
+In Liquid Glass-era SDKs, **toolbars adopt Liquid Glass** and introduce a stronger **grouping mechanism** for toolbar items (items in the same group share a single glass background).
+
+Conventions (from Apple’s “Adopting Liquid Glass” guidance):
+- **Group related actions together** (similar actions, or actions affecting the same UI) and keep groupings consistent across platforms.
+- **Separate groups intentionally** using a *fixed spacer* between groups (SwiftUI: `ToolbarSpacer` / fixed spacing where available).
+  - Toolbars overview: https://developer.apple.com/documentation/swiftui/toolbars
+- **Prefer standard icons (SF Symbols) for common actions** instead of text to declutter.
+- **Don’t mix text and icons inside the same shared-background group** (it looks inconsistent).
+- **Always provide accessibility labels** for icon-only controls (prefer `Label` or add `.accessibilityLabel`).
+- **Audit toolbar customizations** (custom spacers, custom backgrounds, or unusual item layouts) because they often fight system grouping/placement.
+- **Hide the toolbar item, not the view inside it**. If you need something to disappear, hide the entire toolbar item using the appropriate API:
+  - SwiftUI: https://developer.apple.com/documentation/swiftui/toolbarcontent/hidden(_:)
+
+If you need to opt an item out of the shared glass background (creating its own grouping), use:
+- https://developer.apple.com/documentation/swiftui/toolbarcontent/sharedbackgroundvisibility(_:)
+
 ### 2) Applying glass to custom controls
 If you must build custom floating controls, apply glass using the SwiftUI Liquid Glass APIs (names per Apple docs):
 - Use `.glassEffect(...)` on the control view.
