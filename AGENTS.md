@@ -40,6 +40,34 @@ When you discover or are given a convention that could apply globally (not just 
    - General engineering practices → `AGENTS.md`
    - Domain-specific conventions → create or update a skill in `skills/`
 
-## Temporary files
-- Prefer writing temporary files to `/tmp` **if it is writable**.
-- Otherwise, write temporary files under a local gitignored directory at repo root: `.agent-tmp/` (create it if missing), and keep all temp output inside it.
+## Temporary files and log capture
+
+### Directory resolution (priority order)
+
+1. **`$TMPDIR`** (preferred): macOS per-user temp directory (e.g., `/var/folders/.../T/`). Always writable, avoids sandboxing issues.
+2. **`.agent-tmp/`** (fallback): repo-local gitignored directory. Create if missing.
+3. **`/tmp`** (last resort): may fail on sandboxed systems or with `noexec` mounts.
+
+```bash
+LOG_DIR="${TMPDIR:-}"
+if [ -z "$LOG_DIR" ] || [ ! -w "$LOG_DIR" ]; then
+  LOG_DIR=".agent-tmp"
+  mkdir -p "$LOG_DIR"
+fi
+```
+
+### Capturing streaming command output
+
+For long-running commands (builds, tests, CI), capture to file while streaming:
+
+```bash
+LOG_FILE="${TMPDIR:-$PWD/.agent-tmp}/build.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+xcodebuild ... 2>&1 | tee "$LOG_FILE"
+```
+
+For LLM context efficiency, extract only relevant portions:
+- `tail -n 100 "$LOG_FILE"` — recent context
+- `grep -E '(error:|warning:)' "$LOG_FILE"` — errors/warnings only
+
+**For comprehensive log handling patterns, use the `$agent-logs` skill.**
