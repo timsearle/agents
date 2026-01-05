@@ -6,7 +6,11 @@ These conventions apply to all of Tim's projects unless overridden by project-sp
 - **Small, atomic commits**: each commit should represent one logical change and be easy to review/revert.
 - **Tests must pass before commit**: never commit if the full test suite is failing.
 - **Prove behavior with tests**: use **unit tests** for logic and **integration/behaviour tests** for end-to-end confidence.
-- **No direct commits to `main`**: always work on a branch and open a pull request.
+- **No direct commits to `main`** (unless allow-listed below): always work on a branch and open a pull request.
+
+### `main` direct-commit allow-list
+Direct commits to `main` are allowed in the following repositories:
+- `timsearle/agents`
 
 ## Engineering standards
 - **Prefer strong types (or equivalents)** to encode invariants (e.g., TypeScript/Flow types, Kotlin/Swift/Rust types, or runtime schemas/validators where needed).
