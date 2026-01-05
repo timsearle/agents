@@ -35,3 +35,7 @@ When you discover or are given a convention that could apply globally (not just 
 3. **Scope appropriately**:
    - General engineering practices → `AGENTS.md`
    - Domain-specific conventions → create or update a skill in `skills/`
+
+## Temporary files
+- Prefer writing temporary files to `/tmp` **if it is writable**.
+- Otherwise, write temporary files under a local gitignored directory at repo root: `.agent-tmp/` (create it if missing), and keep all temp output inside it.
