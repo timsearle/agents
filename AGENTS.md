@@ -3,6 +3,7 @@
 These conventions apply to all of Tim's projects unless overridden by project-specific instructions.
 
 ## Non-negotiables
+- **Pull before starting work**: Always `git pull` (or `git fetch && git rebase`) before making changes to ensure you're working on the latest code.
 - **Small, atomic commits**: each commit should represent one logical change and be easy to review/revert.
 - **Tests must pass before commit**: never commit if the full test suite is failing.
 - **Prove behavior with tests**: use **unit tests** for logic and **integration/behaviour tests** for end-to-end confidence.
