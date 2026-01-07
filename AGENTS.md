@@ -30,15 +30,13 @@ Direct commits to `main` are allowed in the following repositories:
 - Full test suite passes.
 - `tickets.md` reflects what shipped and what remains.
 
-## Contributing conventions back
+## Reflection and learning
 
-When you discover or are given a convention that could apply globally (not just to the current project):
+When you fail multiple times before succeeding, receive explicit corrections, or discover patterns that should be remembered:
 
-1. **Ask**: "This looks like a reusable convention. Should I add it to your global agents repository?"
-2. **If yes**: Use the `$contribute-conventions` skill to update the appropriate file in `~/.agents/` (or wherever this repository is cloned).
-3. **Scope appropriately**:
-   - General engineering practices → `AGENTS.md`
-   - Domain-specific conventions → create or update a skill in `skills/`
+1. **Recognize the signal**: Corrections ("never do X"), trial-and-error sequences, or explicit conventions
+2. **Use the `$reflect` skill**: Analyze the conversation and propose updates to `AGENTS.md` or relevant skills
+3. **Always propose, never auto-commit**: Present changes for human approval before applying
 
 ## Temporary files and log capture
 
