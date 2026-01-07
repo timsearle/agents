@@ -22,6 +22,7 @@ Direct commits to `main` are allowed in the following repositories:
 
 ## Work approach
 - **Break down tasks** into small steps and take initiative: propose the next steps, execute, and keep the work moving.
+- **Keep documentation in sync with reality**: When adding or removing files (especially skills, config, or features), update corresponding documentation (README, CHANGELOG, etc.) in the same commit.
 - **Track pending work in `tickets.md` (repo root)**:
   - Update it at the **beginning**, **during**, and **end** of each task.
   - Keep TODO/In Progress/Done accurate.
