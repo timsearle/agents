@@ -4,6 +4,7 @@ These conventions apply to all of Tim's projects unless overridden by project-sp
 
 ## Non-negotiables
 - **Pull before starting work**: Always `git pull` (or `git fetch && git rebase`) before making changes to ensure you're working on the latest code.
+- **Initialize git immediately**: When creating a new project, run `git init` before writing any code. Commit early and often as you work.
 - **Small, atomic commits**: each commit should represent one logical change and be easy to review/revert.
 - **Preserve commit history**: Don't squash commits with `--amend` unless explicitly requested. Keep separate commits for better traceability and easier review/revert.
 - **Tests must pass before commit**: never commit if the full test suite is failing.
