@@ -19,6 +19,7 @@ Direct commits to `main` are allowed in the following repositories:
 - Keep changes **minimal and surgical**; avoid drive-by refactors.
 - When uncertain, **add/adjust tests first** to pin down expected behavior.
 - **Always check application logs** during development (console logs, crash reports, warnings). Fix or document any warnings before considering work complete.
+- **Use latest stable versions** for new projects: Before adding dependencies, verify the latest stable version (via web search, package registry, or official docs). Exception: In existing projects, maintain current versions unless explicitly upgrading or instructed otherwise.
 
 ## Work approach
 - **Break down tasks** into small steps and take initiative: propose the next steps, execute, and keep the work moving.
