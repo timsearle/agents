@@ -12,8 +12,10 @@ Central repository for Tim's agent instructions and skills, following the [Agent
 ### Available Skills
 
 - **[agent-logs](./skills/agent-logs/)** — Standardised log capture and streaming output handling for agent workflows
+- **[bash-conventions](./skills/bash-conventions/)** — Portable, secure, and robust bash script patterns
 - **[cli-tools](./skills/cli-tools/)** — Conventions for macOS/Unix CLI tools and Homebrew distribution
 - **[liquid-glass](./skills/liquid-glass/)** — Adopt Apple Liquid Glass accurately (design + SwiftUI patterns)
+- **[micronaut](./skills/micronaut/)** — Conventions for Micronaut Framework projects with reactive patterns and Azure SDK
 - **[reflect](./skills/reflect/)** — Analyze conversations for corrections and propose updates to AGENTS.md or skills
 - **[swiftpm-pipeline](./skills/swiftpm-pipeline/)** — CI + release + Homebrew pipeline for SwiftPM packages
 
