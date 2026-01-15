@@ -1,125 +1,225 @@
 ---
 name: liquid-glass
-description: Guidance for adopting Apple’s Liquid Glass design language accurately (principles + SwiftUI usage patterns). Use when designing iOS/iPadOS/macOS UI that should match Apple’s Liquid Glass look and behavior.
+description: Definitive guidance for adopting Apple's Liquid Glass design language and SwiftUI/UIKit implementation patterns.
 compatibility: iOS/iPadOS/macOS (Liquid Glass-era SDKs); SwiftUI-first; UIKit/AppKit notes included.
 allowed-tools: Read
 metadata:
   author: timsearle
-  version: "1.0"
+  version: "2.0"
 ---
 
 # Liquid Glass (Apple) adoption skill
 
-Use this skill when the user asks you to adopt **Apple Liquid Glass** (design + implementation) or mentions `glassEffect`, `GlassEffectContainer`, translucent navigation layers, floating toolbars/tab bars, or “new Apple design system”.
+Use this skill when the user asks for Liquid Glass, glassEffect, GlassEffectContainer, glass buttons, floating toolbars/tab bars, translucent navigation layers, or "new Apple design system".
 
-## High-level rule (don’t get this wrong)
+## Core rule (do not violate)
 
-**Liquid Glass is for the navigation / controls layer that floats above content — not the content layer.**
-- ✅ Use for: toolbars, navigation bars, tab bars, floating control clusters, sheets/popovers/menus.
-- ❌ Avoid for: lists, tables, primary reading surfaces, media/content itself, and stacked “glass-on-glass”.
+Liquid Glass belongs to the navigation/controls layer floating above content, not the content layer itself.
+- Use for: toolbars, navigation bars, tab bars, floating control clusters, sheets/popovers/menus.
+- Avoid for: lists, tables, primary reading surfaces, media content, and stacked glass-on-glass.
 
 ## Sources of truth (use these first)
 
-Prefer **official Apple docs** for names/availability and behavior:
-- Liquid Glass overview (Apple Developer Documentation):
-  - https://docs.developer.apple.com/documentation/technologyoverviews/liquid-glass
-- Adopting Liquid Glass (Apple Developer Documentation):
-  - https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass
-- SwiftUI: `GlassEffectContainer` and related APIs (Apple Developer Documentation):
-  - https://developer.apple.com/documentation/swiftui/glasseffectcontainer
-  - https://developer.apple.com/documentation/swiftui/view/glasseffectid(_:in:)
+Official Apple docs (authoritative for names/availability/behavior):
+- Liquid Glass overview: https://docs.developer.apple.com/documentation/technologyoverviews/liquid-glass
+- Adopting Liquid Glass: https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass
+- Applying Liquid Glass to custom views: https://developer.apple.com/documentation/SwiftUI/Applying-Liquid-Glass-to-custom-views
+- Landmarks (Liquid Glass): https://developer.apple.com/documentation/SwiftUI/Landmarks-Building-an-app-with-Liquid-Glass
+- View.glassEffect: https://developer.apple.com/documentation/SwiftUI/View/glassEffect(_:in:isEnabled:)
+- GlassEffectContainer: https://developer.apple.com/documentation/SwiftUI/GlassEffectContainer
+- GlassEffectTransition: https://developer.apple.com/documentation/SwiftUI/GlassEffectTransition
+- GlassButtonStyle: https://developer.apple.com/documentation/SwiftUI/GlassButtonStyle
+- Toolbars: https://developer.apple.com/documentation/SwiftUI/Toolbars
+- ToolbarSpacer: https://developer.apple.com/documentation/SwiftUI/ToolbarSpacer
+- SearchToolbarBehavior: https://developer.apple.com/documentation/SwiftUI/SearchToolbarBehavior
+- DefaultToolbarItem: https://developer.apple.com/documentation/SwiftUI/DefaultToolbarItem
+- ToolbarItemPlacement: https://developer.apple.com/documentation/SwiftUI/ToolbarItemPlacement
+- CustomizableToolbarContent: https://developer.apple.com/documentation/SwiftUI/CustomizableToolbarContent
 
-Cross-reference community notes (helpful, but treat as secondary):
-- LiquidGlassReference (Conor Luddy): https://github.com/conorluddy/LiquidGlassReference
+Community reference (secondary):
+- LiquidGlassReference: https://github.com/conorluddy/LiquidGlassReference
 
-## Design principles (how to “feel” like Liquid Glass)
-
-When generating UI/design guidance:
-1. **Hierarchy by depth**: content reads as the base plane; controls float above with translucency and subtle depth.
-2. **Legibility first**: glass is only “beautiful” if foreground controls remain readable over arbitrary content.
-3. **Use system standard components**: the system applies the correct sampling, vibrancy, motion, and accessibility adaptations.
-4. **Avoid extra custom backgrounds** on navigation/toolbar/sheet surfaces unless you are intentionally opting out.
-
-## SwiftUI implementation conventions
+## SwiftUI implementation (primary path)
 
 ### 1) Prefer automatic adoption
-If the app uses standard SwiftUI structures (e.g., `NavigationStack`, `TabView`, toolbars, sheets), default to **removing custom backgrounds** and letting the system apply Liquid Glass.
+Use standard SwiftUI structures (NavigationStack, TabView, toolbars, sheets) and remove custom backgrounds that block the system glass.
+- Avoid heavy .toolbarBackground or .presentationBackground overrides unless you are intentionally opting out.
 
-- If you see legacy code like `.toolbarBackground(...)`, `.presentationBackground(...)`, heavy `.background(Color...)` on navigation chrome, prefer removing/relaxing it for Liquid Glass-era SDKs.
+### 2) Apply glass to custom controls
+Use glassEffect for custom floating controls; apply after other visual modifiers.
 
-### 1a) Toolbars: new Liquid Glass behaviors (grouping + icons)
-In Liquid Glass-era SDKs, **toolbars adopt Liquid Glass** and introduce a stronger **grouping mechanism** for toolbar items (items in the same group share a single glass background).
+```swift
+Text("Hello")
+    .font(.title)
+    .padding()
+    .glassEffect(.regular.tint(.orange).interactive())
 
-Conventions (from Apple’s “Adopting Liquid Glass” guidance):
-- **Group related actions together** (similar actions, or actions affecting the same UI) and keep groupings consistent across platforms.
-- **Separate groups intentionally** using a *fixed spacer* between groups (SwiftUI: `ToolbarSpacer` / fixed spacing where available).
-  - Toolbars overview: https://developer.apple.com/documentation/swiftui/toolbars
-- **Prefer standard icons (SF Symbols) for common actions** instead of text to declutter.
-- **Don’t mix text and icons inside the same shared-background group** (it looks inconsistent).
-- **Always provide accessibility labels** for icon-only controls (prefer `Label` or add `.accessibilityLabel`).
-- **Audit toolbar customizations** (custom spacers, custom backgrounds, or unusual item layouts) because they often fight system grouping/placement.
-- **Hide the toolbar item, not the view inside it**. If you need something to disappear, hide the entire toolbar item using the appropriate API:
-  - SwiftUI: https://developer.apple.com/documentation/swiftui/toolbarcontent/hidden(_:)
+Text("Badge")
+    .padding()
+    .glassEffect(in: .rect(cornerRadius: 16))
+```
 
-If you need to opt an item out of the shared glass background (creating its own grouping), use:
-- https://developer.apple.com/documentation/swiftui/toolbarcontent/sharedbackgroundvisibility(_:)
+Notes:
+- .regular is the default style.
+- Use .tint(...) to signal prominence.
+- Use .interactive() when the control should react to touch/pointer input.
 
-### 2) Applying glass to custom controls
-If you must build custom floating controls, apply glass using the SwiftUI Liquid Glass APIs (names per Apple docs):
-- Use `.glassEffect(...)` on the control view.
-- Use `GlassEffectContainer { ... }` when multiple glass elements belong together.
+### 3) Group related glass elements
+When multiple elements should blend or morph, wrap them in GlassEffectContainer.
 
-**Critical rule:** avoid separate glass elements sampling each other; group related glass in a container so the system can create a shared sampling region.
+```swift
+GlassEffectContainer(spacing: 40) {
+    HStack(spacing: 40) {
+        Image(systemName: "scribble.variable")
+            .frame(width: 80, height: 80)
+            .glassEffect()
+        Image(systemName: "eraser.fill")
+            .frame(width: 80, height: 80)
+            .glassEffect()
+    }
+}
+```
 
-### 3) Grouping + morphing
-For morphing/merging glass shapes (menus expanding/collapsing, clustered buttons, etc.):
-- Put all related elements inside a single `GlassEffectContainer`.
-- Use a shared `@Namespace` and apply `.glassEffectID(_:in:)` to each morphing element.
-- Animate state transitions (prefer systemy spring/bouncy timing rather than constant animations).
+- Smaller spacing -> elements must be closer to merge; larger spacing -> merge from farther apart.
+- Avoid separate glass elements sampling each other; use a container.
 
-### 4) Tinting
-Tint is a semantic tool, not decoration:
-- ✅ Use tint for primary/critical actions or state emphasis.
-- ❌ Don’t tint everything (it destroys hierarchy and reduces the “Apple” feel).
+### 4) Unions and morphing transitions
+Use union IDs for dynamic layouts and glassEffectID for morphing transitions.
 
-### 5) Clear vs regular
-If your SDK supports variants (commonly described as “regular” vs “clear” styles), choose:
-- **Regular** as the default.
-- **Clear** only for controls over media-rich backgrounds, and only if legibility is preserved (often requiring dimming/contrast management behind the control).
+```swift
+@Namespace private var namespace
 
-If uncertain, use the default/regular style.
+GlassEffectContainer(spacing: 20) {
+    HStack(spacing: 20) {
+        ForEach(items.indices, id: \.self) { index in
+            Image(systemName: items[index])
+                .frame(width: 80, height: 80)
+                .glassEffect()
+                .glassEffectUnion(id: index < 2 ? "left" : "right", namespace: namespace)
+                .glassEffectID(items[index], in: namespace)
+        }
+    }
+}
+```
 
-## UIKit/AppKit guidance (accuracy guardrails)
+- Animate hierarchy changes (withAnimation) to trigger morphing.
+- Use GlassEffectTransition when you need explicit transition behavior.
 
-- Do **not** invent/assume UIKit classes like `UIGlassEffect` or `UIGlassContainerEffect` unless you can cite official Apple documentation for them.
-- In UIKit/AppKit, prefer system-provided materials and visual effect views (e.g., `UIVisualEffectView` + `UIBlurEffect`) and rely on standard bars/sheets for best results.
-- If the user needs true Liquid Glass fidelity, recommend **SwiftUI + standard components** on the appropriate OS versions.
+### 5) Glass buttons
+SwiftUI provides standard styles:
+
+```swift
+Button("Action") { }
+    .buttonStyle(.glass)
+
+Button("Primary") { }
+    .buttonStyle(.glassProminent)
+```
+
+### 6) Background extension effects
+Use scrollExtensionMode to extend scroll content beneath a sidebar or inspector:
+
+```swift
+ScrollView(.horizontal) { ... }
+    .scrollExtensionMode(.underSidebar)
+```
+
+## Toolbars and navigation (Liquid Glass era)
+
+### Grouping and shared backgrounds
+- Toolbars adopt Liquid Glass automatically; items in the same group share one glass background.
+- Group related actions together; separate groups using fixed spacers.
+- Prefer icon-only controls with accessibility labels; do not mix text and icons in the same shared background group.
+
+```swift
+.toolbar(id: "main-toolbar") {
+    ToolbarItem(id: "tag") { TagButton() }
+    ToolbarItem(id: "share") { ShareButton() }
+    ToolbarSpacer(.fixed)
+    ToolbarItem(id: "more") { MoreButton() }
+}
+```
+
+### Search and placement
+- Minimize search to save space: .searchToolbarBehavior(.minimize)
+- Reposition search: DefaultToolbarItem(kind: .search, placement: .bottomBar)
+
+### Opt out of shared background for a specific item
+```swift
+ToolbarItem(id: "build-status", placement: .principal) {
+    BuildStatus()
+}
+.sharedBackgroundVisibility(.hidden)
+```
+
+### New placements + transitions
+- Use .largeSubtitle placement for custom subtitle content.
+- Use matchedTransitionSource on toolbar items for coordinated transitions.
+
+### Hiding items
+Hide the toolbar item itself (not the inner view):
+
+```swift
+ToolbarItem(id: "download") { DownloadButton() }
+    .hidden(isHidden)
+```
+
+## UIKit/AppKit guidance (when SwiftUI is not possible)
+
+Use Liquid Glass-era UIKit APIs when available; gate with availability checks.
+
+### Basic glass effect
+```swift
+let glassEffect = UIGlassEffect()
+glassEffect.tintColor = UIColor.systemBlue.withAlphaComponent(0.3)
+glassEffect.isInteractive = true
+
+let view = UIVisualEffectView(effect: glassEffect)
+view.layer.cornerRadius = 20
+view.clipsToBounds = true
+```
+
+### Container blending
+```swift
+let container = UIGlassContainerEffect()
+container.spacing = 40
+
+let containerView = UIVisualEffectView(effect: container)
+```
+
+### Scroll edge effects
+```swift
+scrollView.topEdgeEffect.style = .automatic
+scrollView.bottomEdgeEffect.style = .hard
+```
+
+Use UIScrollEdgeElementContainerInteraction to let overlay views influence edge effect shapes.
+
+### Toolbar items
+- UIBarButtonItem supports hiding the shared background via hidesSharedBackground.
+
+If Liquid Glass APIs are unavailable on a target OS, fall back to system materials (UIBlurEffect + standard bars) instead of custom glass.
 
 ## Accessibility requirements
-When advising or generating UI:
-- Assume users may enable **Reduce Transparency**, **Increase Contrast**, and **Reduce Motion**.
-- Prefer system components because they automatically adapt.
-- Never hard-code opacity/contrast in a way that defeats accessibility settings.
+- Assume Reduce Transparency, Increase Contrast, and Reduce Motion.
+- Prefer system components so the OS can adapt automatically.
+- Ensure text over glass meets contrast requirements.
 
 ## Performance requirements
-- Treat glass as GPU-expensive.
-- Prefer fewer, larger glass surfaces rather than many small independent ones.
-- Group related controls in a `GlassEffectContainer` to reduce redundant sampling.
-- Avoid continuous animations “just to show glass”. Let it rest.
+- Glass is GPU-expensive; prefer fewer, larger surfaces.
+- Group related controls in GlassEffectContainer.
+- Avoid constant animations; allow glass to rest.
 
-## Review checklist (use before you say “done”)
-
-1. Is glass limited to navigation/controls rather than content?
-2. Are there any glass-on-glass stacks? (remove)
-3. Are custom backgrounds on toolbars/nav bars/sheets blocking automatic system behavior?
-4. Are grouped controls inside a `GlassEffectContainer`?
-5. Is tint used sparingly and semantically?
-6. Have you considered Reduce Transparency/Reduce Motion/High Contrast?
-7. Have you considered low-end device performance and battery?
+## Review checklist
+1. Glass limited to navigation/controls, not content.
+2. No glass-on-glass stacking.
+3. No custom backgrounds blocking system glass.
+4. Related controls grouped in GlassEffectContainer.
+5. Tint used sparingly and semantically.
+6. Accessibility settings accounted for.
+7. Performance acceptable on low-end devices.
 
 ## Output style when using this skill
-
-When you respond to a user:
-- Start with a short “what to change” list (remove custom backgrounds, prefer system components, add container, etc.).
-- Provide a minimal SwiftUI snippet only where it clarifies the approach.
-- If the user asks for exact API signatures/availability, defer to Apple docs URLs above and explicitly label anything else as “unverified”.
+- Start with a short "what to change" list.
+- Provide minimal SwiftUI snippets to clarify.
+- Call out API availability and link Apple docs for exact signatures.

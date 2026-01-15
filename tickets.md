@@ -4,7 +4,10 @@
 
 ## In Progress
 
+
 ## Done
+- [x] Overhaul liquid-glass skill from temp docs
+- [x] Add SwiftUI skill from temp docs
 - [x] Allow-list repos that permit direct commits to `main` (start with `timsearle/agents`)
 - [x] Add temp-file provision (use writable `/tmp`, else `.agent-tmp/`)
 - [x] Create `liquid-glass` skill (cross-reference LiquidGlassReference + Apple docs)

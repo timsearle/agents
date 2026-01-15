@@ -17,6 +17,7 @@ Central repository for Tim's agent instructions and skills, following the [Agent
 - **[liquid-glass](./skills/liquid-glass/)** — Adopt Apple Liquid Glass accurately (design + SwiftUI patterns)
 - **[micronaut](./skills/micronaut/)** — Conventions for Micronaut Framework projects with reactive patterns and Azure SDK
 - **[reflect](./skills/reflect/)** — Analyze conversations for corrections and propose updates to AGENTS.md or skills
+- **[swiftui](./skills/swiftui/)** — SwiftUI patterns for toolbars, styled text editing, and WebKit integration
 - **[swiftpm-pipeline](./skills/swiftpm-pipeline/)** — CI + release + Homebrew pipeline for SwiftPM packages
 
 ## Quick Start
