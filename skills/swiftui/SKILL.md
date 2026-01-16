@@ -54,6 +54,29 @@ DefaultToolbarItem(kind: .search, placement: .bottomBar)
 - Test customization flows on macOS if supported.
 - For UI alignment/gesture fixes, verify in Simulator with a screenshot or visual check before declaring complete.
 
+## Gesture performance patterns
+
+### Smooth dragging with @GestureState
+For drag-to-reveal sliders or position handles, use `@GestureState` instead of updating `@Binding` on every `.onChanged`. This keeps state local during the gesture and only commits on `.onEnded`:
+
+```swift
+@GestureState private var dragOffset: CGFloat = 0
+@Binding var position: CGFloat
+
+.gesture(
+    DragGesture()
+        .updating($dragOffset) { value, state, _ in
+            state = value.translation.width
+        }
+        .onEnded { value in
+            position = clamp(position + value.translation.width / width, 0...1)
+        }
+)
+```
+
+### Comparison slider ranges
+For photo/overlay comparison sliders, use full 0.0-1.0 range. Clipping to 0.05-0.95 prevents the user from seeing 100% of either layer.
+
 ## Styled text and editing
 
 ### Display rich text with AttributedString
