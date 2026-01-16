@@ -9,6 +9,7 @@
 - [x] Add Copilot MCP config bootstrap support
 - [x] Overhaul liquid-glass skill from temp docs
 - [x] Add SwiftUI skill from temp docs
+- [x] Add SwiftUI skill guidance on visual verification for UI alignment
 - [x] Allow-list repos that permit direct commits to `main` (start with `timsearle/agents`)
 - [x] Add temp-file provision (use writable `/tmp`, else `.agent-tmp/`)
 - [x] Create `liquid-glass` skill (cross-reference LiquidGlassReference + Apple docs)

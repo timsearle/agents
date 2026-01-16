@@ -52,6 +52,7 @@ DefaultToolbarItem(kind: .search, placement: .bottomBar)
 - Group related actions together.
 - Prefer system-defined toolbar items for platform consistency.
 - Test customization flows on macOS if supported.
+- For UI alignment/gesture fixes, verify in Simulator with a screenshot or visual check before declaring complete.
 
 ## Styled text and editing
 
