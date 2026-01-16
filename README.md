@@ -8,6 +8,7 @@ Central repository for Tim's agent instructions and skills, following the [Agent
 |----------------|---------|
 | [`AGENTS.md`](./AGENTS.md) | Global agent instructions (coding conventions, work approach, etc.) |
 | [`skills/`](./skills) | Reusable skills with `SKILL.md` files |
+| [`mcp/`](./mcp) | Provider-specific MCP server configs |
 
 ### Available Skills
 
@@ -54,6 +55,7 @@ The setup script creates symlinks from each agent's expected configuration locat
 ~/.claude/skills/                → ~/.agents/skills/
 ~/.codex/AGENTS.md               → ~/.agents/AGENTS.md
 ~/.copilot/copilot-instructions.md → ~/.agents/AGENTS.md
+~/.copilot/mcp-config.json       → ~/.agents/mcp/copilot-mcp-config.json
 ```
 
 This means:

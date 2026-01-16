@@ -17,6 +17,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENTS_MD="$SCRIPT_DIR/AGENTS.md"
 SKILLS_DIR="$SCRIPT_DIR/skills"
+MCP_DIR="$SCRIPT_DIR/mcp"
+COPILOT_MCP_CONFIG="$MCP_DIR/copilot-mcp-config.json"
 
 FORCE=false
 if [[ "${1:-}" == "--force" ]]; then
@@ -253,6 +255,7 @@ setup_copilot() {
     local copilot_home="$HOME/.copilot"
     local instructions_md="$copilot_home/copilot-instructions.md"
     local config_file="$copilot_home/config.json"
+    local mcp_config_file="$copilot_home/mcp-config.json"
 
     echo ""
     info "Setting up Copilot CLI..."
@@ -262,6 +265,13 @@ setup_copilot() {
 
     # Configure skills directory in config.json
     update_json_config "$config_file" "skill_directories" "[\"$SKILLS_DIR\"]"
+
+    # Symlink MCP config
+    if [[ -f "$COPILOT_MCP_CONFIG" ]]; then
+        create_symlink "$COPILOT_MCP_CONFIG" "$mcp_config_file"
+    else
+        warn "Copilot MCP config not found at $COPILOT_MCP_CONFIG (skipping)"
+    fi
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

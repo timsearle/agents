@@ -6,6 +6,7 @@
 
 
 ## Done
+- [x] Add Copilot MCP config bootstrap support
 - [x] Overhaul liquid-glass skill from temp docs
 - [x] Add SwiftUI skill from temp docs
 - [x] Allow-list repos that permit direct commits to `main` (start with `timsearle/agents`)

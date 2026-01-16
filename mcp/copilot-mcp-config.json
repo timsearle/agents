@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "XcodeBuildMCP": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "xcodebuildmcp@latest"],
+      "tools": ["*"],
+      "env": {
+        "INCREMENTAL_BUILDS_ENABLED": "false",
+        "SENTRY_DISABLED": "true",
+        "XCODEBUILDMCP_SENTRY_DISABLED": "true"
+      }
+    }
+  }
+}
