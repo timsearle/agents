@@ -2,77 +2,62 @@
 
 These conventions apply to all of Tim's projects unless overridden by project-specific instructions.
 
-## Non-negotiables
-- **Pull before starting work**: Always `git pull` (or `git fetch && git rebase`) before making changes to ensure you're working on the latest code.
-- **Initialize git immediately**: When creating a new project, run `git init` before writing any code. Commit early and often as you work.
-- **Small, atomic commits**: each commit should represent one logical change and be easy to review/revert.
-- **Preserve commit history**: Don't squash commits with `--amend` unless explicitly requested. Keep separate commits for better traceability and easier review/revert.
-- **Tests must pass before commit**: never commit if the full test suite is failing.
-- **Prove behavior with tests**: use **unit tests** for logic and **integration/behaviour tests** for end-to-end confidence.
-- **No direct commits to `main`** (unless allow-listed below): always work on a branch and open a pull request.
+## Task lifecycle
 
-### `main` direct-commit allow-list
-Direct commits to `main` are allowed in the following repositories:
-- `timsearle/agents`
+### Before starting
+- `git pull` or `git fetch && git rebase` to get latest code
+- For new projects: `git init` before writing any code
+
+### During work
+- Break tasks into small steps; propose next steps and execute
+- Keep changes minimal and surgical; no drive-by refactors
+- When uncertain, add/adjust tests first to pin expected behavior
+- Check logs (console, crashes, warnings); fix or document before continuing
+- Track work in `tickets.md`: update at start, during, and end of task
+
+### Definition of done
+A task is **not complete** until:
+- [ ] Tests added/updated for the change
+- [ ] Full test suite passes
+- [ ] **Changes are committed** (verification ≠ done; commit = done)
+- [ ] `tickets.md` updated
+
+## Commit discipline
+- **Small, atomic commits**: one logical change per commit
+- **Preserve history**: no `--amend` unless explicitly requested
+- **Tests pass before commit**: never commit failing tests
+- **No direct commits to `main`** except in allow-listed repos:
+  - `timsearle/agents`
 
 ## Engineering standards
-- **Prefer strong types (or equivalents)** to encode invariants (e.g., TypeScript/Flow types, Kotlin/Swift/Rust types, or runtime schemas/validators where needed).
-- Keep changes **minimal and surgical**; avoid drive-by refactors.
-- When uncertain, **add/adjust tests first** to pin down expected behavior.
-- **Always check application logs** during development (console logs, crash reports, warnings). Fix or document any warnings before considering work complete.
-- **Use latest stable versions** for new projects: Before adding dependencies, verify the latest stable version (via web search, package registry, or official docs). Exception: In existing projects, maintain current versions unless explicitly upgrading or instructed otherwise.
-
-## Work approach
-- **Break down tasks** into small steps and take initiative: propose the next steps, execute, and keep the work moving.
-- **Keep documentation in sync with reality**: When adding or removing files (especially skills, config, or features), update corresponding documentation (README, CHANGELOG, etc.) in the same commit.
-  - **In the `agents` repo specifically**: After ANY change to `skills/`, verify README.md lists all skills before committing.
-- **Self-review before PR**: Before pushing, pause and critically review your own work as if you were a skeptical reviewer. Look for edge cases, implicit assumptions, and failure modes.
-- **Track pending work in `tickets.md` (repo root)**:
-  - Update it at the **beginning**, **during**, and **end** of each task.
-  - Keep TODO/In Progress/Done accurate.
-  - Use it to capture follow-ups and edge-cases discovered mid-flight.
-
-## Definition of done
-- All relevant tests added/updated.
-- Full test suite passes.
-- `tickets.md` reflects what shipped and what remains.
+- Prefer strong types to encode invariants
+- Prove behavior with unit tests (logic) and integration tests (end-to-end)
+- Use latest stable versions for new dependencies; maintain existing versions unless upgrading
+- Keep docs in sync: update README/CHANGELOG in same commit as related changes
+  - In `agents` repo: verify README.md lists all skills after any `skills/` change
+- Self-review before PR: check for edge cases, assumptions, failure modes
 
 ## Reflection and learning
 
-When you fail multiple times before succeeding, receive explicit corrections, or discover patterns that should be remembered:
-
-1. **Recognize the signal**: Corrections ("never do X"), trial-and-error sequences, or explicit conventions
-2. **Use the `$reflect` skill**: Analyze the conversation and propose updates to `AGENTS.md` or relevant skills
-3. **Always propose, never auto-commit**: Present changes for human approval before applying
+When corrected or after trial-and-error sequences:
+1. Recognize the signal (corrections, repeated failures, explicit conventions)
+2. Use `$reflect` skill to propose updates to AGENTS.md or skills
+3. Always propose changes for human approval—never auto-commit
 
 ## Temporary files and log capture
 
-### Directory resolution (priority order)
-
-1. **`$TMPDIR`** (preferred): macOS per-user temp directory (e.g., `/var/folders/.../T/`). Always writable, avoids sandboxing issues.
-2. **`.agent-tmp/`** (fallback): repo-local gitignored directory. Create if missing.
-3. **`/tmp`** (last resort): may fail on sandboxed systems or with `noexec` mounts.
+Use `$TMPDIR` (preferred), `.agent-tmp/` (fallback), or `/tmp` (last resort):
 
 ```bash
-LOG_DIR="${TMPDIR:-}"
-if [ -z "$LOG_DIR" ] || [ ! -w "$LOG_DIR" ]; then
-  LOG_DIR=".agent-tmp"
-  mkdir -p "$LOG_DIR"
-fi
+LOG_DIR="${TMPDIR:-.agent-tmp}"
+[ -w "$LOG_DIR" ] || { LOG_DIR=".agent-tmp"; mkdir -p "$LOG_DIR"; }
 ```
 
-### Capturing streaming command output
-
-For long-running commands (builds, tests, CI), capture to file while streaming:
-
+For long-running commands, capture while streaming:
 ```bash
-LOG_FILE="${TMPDIR:-$PWD/.agent-tmp}/build.log"
-mkdir -p "$(dirname "$LOG_FILE")"
-xcodebuild ... 2>&1 | tee "$LOG_FILE"
+xcodebuild ... 2>&1 | tee "${LOG_DIR}/build.log"
 ```
 
-For LLM context efficiency, extract only relevant portions:
-- `tail -n 100 "$LOG_FILE"` — recent context
-- `grep -E '(error:|warning:)' "$LOG_FILE"` — errors/warnings only
+Extract relevant portions: `tail -n 100` or `grep -E '(error:|warning:)'`
 
-**For comprehensive log handling patterns, use the `$agent-logs` skill.**
+For comprehensive patterns, use `$agent-logs` skill.
