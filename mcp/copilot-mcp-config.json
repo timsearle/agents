@@ -13,7 +13,7 @@
     },
     "proxyman": {
       "type": "local",
-      "command": "/Applications/Proxyman.app/Contents/MacOS/proxyman-mcp-server",
+      "command": "/Applications/Proxyman.app/Contents/MacOS/mcp-server",
       "args": [],
       "tools": ["*"]
     }
