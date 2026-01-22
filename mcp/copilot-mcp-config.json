@@ -10,6 +10,11 @@
         "SENTRY_DISABLED": "true",
         "XCODEBUILDMCP_SENTRY_DISABLED": "true"
       }
+    },
+    "proxyman": {
+      "type": "local",
+      "command": "/Applications/Proxyman.app/Contents/MacOS/proxyman-mcp-server",
+      "tools": ["*"]
     }
   }
 }
