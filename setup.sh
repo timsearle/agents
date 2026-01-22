@@ -255,7 +255,7 @@ setup_copilot() {
     local copilot_home="$HOME/.copilot"
     local instructions_md="$copilot_home/copilot-instructions.md"
     local config_file="$copilot_home/config.json"
-    local mcp_config_file="$copilot_home/mcp-config.json"
+    local mcp_config_file="$copilot_home/config/mcp.json"
 
     echo ""
     info "Setting up Copilot CLI..."
