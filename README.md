@@ -55,7 +55,7 @@ The setup script creates symlinks from each agent's expected configuration locat
 ~/.claude/skills/                → ~/.agents/skills/
 ~/.codex/AGENTS.md               → ~/.agents/AGENTS.md
 ~/.copilot/copilot-instructions.md → ~/.agents/AGENTS.md
-~/.copilot/mcp-config.json       → ~/.agents/mcp/copilot-mcp-config.json
+~/.copilot/config/mcp.json       → ~/.agents/mcp/copilot-mcp-config.json
 ```
 
 This means:
@@ -90,11 +90,3 @@ Instructions for the agent...
 ```
 
 See the [Agent Skills Specification](https://agentskills.io/specification) for full details.
-
-## Pay It Back
-
-When you improve a convention in any project:
-
-1. Update this repository first (or in the same PR)
-2. Create follow-up PRs across existing repos to adopt the improvement
-3. Document what changed and why
