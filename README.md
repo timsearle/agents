@@ -55,7 +55,7 @@ The setup script creates symlinks from each agent's expected configuration locat
 ~/.claude/skills/                → ~/.agents/skills/
 ~/.codex/AGENTS.md               → ~/.agents/AGENTS.md
 ~/.copilot/copilot-instructions.md → ~/.agents/AGENTS.md
-~/.copilot/config/mcp.json       → ~/.agents/mcp/copilot-mcp-config.json
+~/.copilot/mcp-config.json          → ~/.agents/mcp/copilot-mcp-config.json
 ```
 
 This means:

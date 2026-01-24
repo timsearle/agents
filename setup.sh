@@ -255,7 +255,7 @@ setup_copilot() {
     local copilot_home="$HOME/.copilot"
     local instructions_md="$copilot_home/copilot-instructions.md"
     local config_file="$copilot_home/config.json"
-    local mcp_config_file="$copilot_home/config/mcp.json"
+    local mcp_config_file="$copilot_home/mcp-config.json"
 
     echo ""
     info "Setting up Copilot CLI..."
@@ -266,7 +266,7 @@ setup_copilot() {
     # Configure skills directory in config.json
     update_json_config "$config_file" "skill_directories" "[\"$SKILLS_DIR\"]"
 
-    # Symlink MCP config
+    # Symlink MCP config (Copilot uses ~/.copilot/mcp-config.json)
     if [[ -f "$COPILOT_MCP_CONFIG" ]]; then
         create_symlink "$COPILOT_MCP_CONFIG" "$mcp_config_file"
     else
