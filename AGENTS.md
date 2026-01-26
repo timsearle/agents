@@ -31,6 +31,7 @@ A task is **not complete** until:
 - **Tests pass before commit**: never commit failing tests
 - **No direct commits to `main`** except in allow-listed repos:
   - `timsearle/agents`
+- **PR descriptions**: Keep minimal—explain *why*, not *what*. The diff shows the what.
 
 ## Engineering standards
 - Prefer strong types to encode invariants
