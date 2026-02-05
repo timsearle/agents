@@ -11,7 +11,7 @@ Precedence/contradiction reconciliation:
 ## Task lifecycle
 
 ### Before starting
-- `git pull --autostash --rebase` to get latest code
+- Start from the cleanest possible branch state to minimize future merge friction. If syncing with the remote is straightforward, do it; if it's not (divergence, conflicts, uncertainty), check in with the user first.
 
 ### During work
 - Break tasks into small steps; propose next steps and execute
