@@ -12,9 +12,10 @@ concurrency:
 
 jobs:
   release:
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      # Re-check the current actions/checkout release before copying this template.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -46,13 +47,11 @@ jobs:
           echo "tag=${NEW_TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${NEW_TAG#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Setup Swift
-        uses: swift-actions/setup-swift@v2
-        with:
-          swift-version: "6.1"
-
-      - name: Build (release)
-        run: swift build -c release
+      - name: Verify toolchain and build
+        run: |
+          set -euo pipefail
+          swift --version
+          swift build -c release
 
       - name: Package
         id: pkg

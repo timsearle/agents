@@ -8,7 +8,8 @@ jobs:
   test:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      # Re-check the current actions/checkout release before copying this template.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Verify Swift toolchain
         run: |
           set -euo pipefail

@@ -1,332 +1,213 @@
 #!/usr/bin/env bash
-#
-# setup.sh — Configure CLI agents to use this repository's AGENTS.md and skills.
-#
-# Supported agents:
-#   - Claude Code (claude)
-#   - OpenAI Codex CLI (codex)
-#   - GitHub Copilot CLI (copilot)
-#
-# Usage:
-#   ./setup.sh          # Interactive setup
-#   ./setup.sh --force  # Overwrite existing symlinks/config
-#
+# Configure supported coding agents to use this repository's instructions and skills.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENTS_MD="$SCRIPT_DIR/AGENTS.md"
 SKILLS_DIR="$SCRIPT_DIR/skills"
-MCP_DIR="$SCRIPT_DIR/mcp"
-COPILOT_MCP_CONFIG="$MCP_DIR/copilot-mcp-config.json"
+COPILOT_MCP_CONFIG="$SCRIPT_DIR/mcp/copilot-mcp-config.json"
 
 FORCE=false
-if [[ "${1:-}" == "--force" ]]; then
-    FORCE=true
-fi
+CHECK_ONLY=false
+SELECTED_AGENT=""
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-info() { echo -e "${BLUE}ℹ${NC} $1"; }
-success() { echo -e "${GREEN}✓${NC} $1"; }
-warn() { echo -e "${YELLOW}⚠${NC} $1"; }
-error() { echo -e "${RED}✗${NC} $1"; }
-
-# Check if a command exists
-has_command() {
-    command -v "$1" &>/dev/null
+usage() {
+    printf '%s\n' \
+        "Usage: ./setup.sh [--force] [--check] [--agent NAME]" \
+        "" \
+        "  --force       Back up conflicting files and replace conflicting symlinks." \
+        "  --check       Validate the current setup without changing it." \
+        "  --agent NAME  Configure codex, claude, copilot, or all, even if not detected." \
+        "  --help        Show this help."
 }
 
-# Create a symlink, handling existing files
-create_symlink() {
+while (($# > 0)); do
+    case "$1" in
+        --force)
+            FORCE=true
+            ;;
+        --check)
+            CHECK_ONLY=true
+            ;;
+        --agent)
+            if (($# < 2)); then
+                printf 'error: --agent requires a value\n' >&2
+                exit 2
+            fi
+            SELECTED_AGENT="$2"
+            shift
+            ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        *)
+            printf 'error: unknown option: %s\n' "$1" >&2
+            usage >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
+
+case "$SELECTED_AGENT" in
+    ""|codex|claude|copilot|all) ;;
+    *)
+        printf 'error: unsupported agent: %s\n' "$SELECTED_AGENT" >&2
+        exit 2
+        ;;
+esac
+
+info() { printf 'i %s\n' "$1"; }
+success() { printf 'ok %s\n' "$1"; }
+warn() { printf 'warning: %s\n' "$1" >&2; }
+error() { printf 'error: %s\n' "$1" >&2; }
+
+has_command() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+symlink_is_correct() {
+    local target="$1"
+    local link="$2"
+
+    [[ -L "$link" && "$(readlink "$link")" == "$target" ]]
+}
+
+ensure_symlink() {
     local target="$1"
     local link="$2"
     local link_dir
     link_dir="$(dirname "$link")"
 
-    # Create parent directory if needed
+    if [[ "$target" == "$link" && -e "$link" ]]; then
+        success "Already available at $link"
+        return 0
+    fi
+
+    if symlink_is_correct "$target" "$link"; then
+        success "Symlink is correct: $link"
+        return 0
+    fi
+
+    if [[ "$CHECK_ONLY" == true ]]; then
+        if [[ -L "$link" ]]; then
+            error "Wrong symlink: $link -> $(readlink "$link")"
+        elif [[ -e "$link" ]]; then
+            error "Expected a symlink but found another file: $link"
+        else
+            error "Missing symlink: $link"
+        fi
+        return 1
+    fi
+
     if [[ ! -d "$link_dir" ]]; then
         mkdir -p "$link_dir"
         info "Created directory: $link_dir"
     fi
 
-    # Handle existing file/symlink
     if [[ -L "$link" ]]; then
-        local existing_target
-        existing_target="$(readlink "$link")"
-        if [[ "$existing_target" == "$target" ]]; then
-            success "Symlink already correct: $link"
-            return 0
-        elif [[ "$FORCE" == true ]]; then
-            rm "$link"
-            info "Removed existing symlink: $link"
-        else
-            warn "Symlink exists with different target: $link -> $existing_target"
-            warn "Use --force to overwrite"
+        if [[ "$FORCE" != true ]]; then
+            warn "Symlink points elsewhere: $link -> $(readlink "$link")"
+            warn "Run with --force to replace it."
             return 1
         fi
+        unlink "$link"
     elif [[ -e "$link" ]]; then
-        if [[ "$FORCE" == true ]]; then
-            local backup="${link}.bak.$(date +%Y%m%d%H%M%S)"
-            mv "$link" "$backup"
-            warn "Backed up existing file: $link -> $backup"
-        else
-            warn "File exists (not a symlink): $link"
-            warn "Use --force to backup and replace"
+        if [[ "$FORCE" != true ]]; then
+            warn "A file or directory already exists at $link"
+            warn "Run with --force to back it up and create the symlink."
             return 1
         fi
+        local backup
+        backup="${link}.bak.$(date +%Y%m%d%H%M%S)"
+        mv "$link" "$backup"
+        warn "Backed up $link to $backup"
     fi
 
     ln -s "$target" "$link"
-    success "Created symlink: $link -> $target"
+    success "Linked $link -> $target"
 }
 
-# Update JSON config file (using jq if available, else python)
-update_json_config() {
-    local file="$1"
-    local key="$2"
-    local value="$3"
-
-    if [[ ! -f "$file" ]]; then
-        # Create new config file
-        echo "{\"$key\": $value}" > "$file"
-        success "Created config: $file"
-        return 0
-    fi
-
-    # Check if value is already set correctly
-    local current_value
-    if has_command jq; then
-        current_value="$(jq -c ".$key" "$file" 2>/dev/null)"
-        local expected_value
-        expected_value="$(echo "$value" | jq -c '.' 2>/dev/null)"
-        if [[ "$current_value" == "$expected_value" ]]; then
-            success "Config already correct: $file ($key)"
-            return 0
-        fi
-    elif has_command python3; then
-        local is_match
-        is_match="$(python3 -c "
-import json
-with open('$file', 'r') as f:
-    config = json.load(f)
-print('yes' if config.get('$key') == $value else 'no')
-" 2>/dev/null)"
-        if [[ "$is_match" == "yes" ]]; then
-            success "Config already correct: $file ($key)"
-            return 0
-        fi
-    fi
-
-    local tmp_file="${file}.tmp"
-
-    if has_command jq; then
-        jq --argjson val "$value" ".$key = \$val" "$file" > "$tmp_file" && mv "$tmp_file" "$file"
-    elif has_command python3; then
-        python3 -c "
-import json, sys
-with open('$file', 'r') as f:
-    config = json.load(f)
-config['$key'] = $value
-with open('$file', 'w') as f:
-    json.dump(config, f, indent=2)
-"
-    else
-        error "Neither jq nor python3 available for JSON editing"
-        return 1
-    fi
-    success "Updated $file: $key"
+setup_shared_skills() {
+    # Codex and Copilot both discover personal skills from ~/.agents/skills.
+    ensure_symlink "$SKILLS_DIR" "$HOME/.agents/skills"
 }
 
-# Update TOML config file (skills location for Codex)
-update_toml_skills() {
-    local file="$1"
-    local skills_path="$2"
-
-    if [[ ! -f "$file" ]]; then
-        # Create minimal config with skills
-        cat > "$file" << EOF
-# Codex CLI configuration
-# Skills directory for agent capabilities
-skills_directories = ["$skills_path"]
-EOF
-        success "Created config: $file"
-        return 0
-    fi
-
-    # Check if skills_directories already configured correctly
-    if grep -q "skills_directories.*$skills_path" "$file" 2>/dev/null; then
-        success "Skills directory already configured in $file"
-        return 0
-    fi
-
-    # Add or update skills_directories
-    if grep -q "^skills_directories" "$file"; then
-        # Line exists, need to update it
-        if has_command python3; then
-            python3 -c "
-import re
-with open('$file', 'r') as f:
-    content = f.read()
-# Replace existing skills_directories line
-content = re.sub(r'^skills_directories\s*=.*$', 'skills_directories = [\"$skills_path\"]', content, flags=re.MULTILINE)
-with open('$file', 'w') as f:
-    f.write(content)
-"
-            success "Updated skills_directories in $file"
-        else
-            warn "Cannot update existing skills_directories without python3"
-            return 1
-        fi
-    else
-        # Append skills_directories
-        echo "" >> "$file"
-        echo "skills_directories = [\"$skills_path\"]" >> "$file"
-        success "Added skills_directories to $file"
-    fi
-}
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Claude Code setup
-# ─────────────────────────────────────────────────────────────────────────────
 setup_claude() {
     local claude_home="${CLAUDE_HOME:-$HOME/.claude}"
-    local claude_md="$claude_home/CLAUDE.md"
-    local settings_file="$claude_home/settings.json"
 
-    echo ""
-    info "Setting up Claude Code..."
-
-    # Symlink AGENTS.md -> CLAUDE.md
-    create_symlink "$AGENTS_MD" "$claude_md"
-
-    # Configure skills directory in settings.json
-    # Claude Code doesn't have a native skills_directories config,
-    # but we can create a symlink for the skills folder
-    local claude_skills="$claude_home/skills"
-    if [[ -L "$claude_skills" ]]; then
-        local existing_target
-        existing_target="$(readlink "$claude_skills")"
-        if [[ "$existing_target" == "$SKILLS_DIR" ]]; then
-            success "Skills symlink already correct: $claude_skills"
-        elif [[ "$FORCE" == true ]]; then
-            rm "$claude_skills"
-            ln -s "$SKILLS_DIR" "$claude_skills"
-            success "Updated skills symlink: $claude_skills -> $SKILLS_DIR"
-        else
-            warn "Skills symlink exists with different target: $claude_skills -> $existing_target"
-        fi
-    elif [[ -d "$claude_skills" ]]; then
-        warn "Skills directory exists (not a symlink): $claude_skills"
-        warn "Consider merging or using --force to replace"
-    else
-        ln -s "$SKILLS_DIR" "$claude_skills"
-        success "Created skills symlink: $claude_skills -> $SKILLS_DIR"
-    fi
+    info "Checking Claude Code"
+    ensure_symlink "$AGENTS_MD" "$claude_home/CLAUDE.md"
+    ensure_symlink "$SKILLS_DIR" "$claude_home/skills"
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Codex CLI setup
-# ─────────────────────────────────────────────────────────────────────────────
 setup_codex() {
     local codex_home="${CODEX_HOME:-$HOME/.codex}"
-    local agents_md="$codex_home/AGENTS.md"
-    local config_file="$codex_home/config.toml"
 
-    echo ""
-    info "Setting up Codex CLI..."
-
-    # Symlink AGENTS.md
-    create_symlink "$AGENTS_MD" "$agents_md"
-
-    # Configure skills directory in config.toml
-    update_toml_skills "$config_file" "$SKILLS_DIR"
+    info "Checking Codex"
+    ensure_symlink "$AGENTS_MD" "$codex_home/AGENTS.md"
+    setup_shared_skills
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Copilot CLI setup
-# ─────────────────────────────────────────────────────────────────────────────
 setup_copilot() {
-    local copilot_home="$HOME/.copilot"
-    local instructions_md="$copilot_home/copilot-instructions.md"
-    local config_file="$copilot_home/config.json"
-    local mcp_config_file="$copilot_home/mcp-config.json"
+    local copilot_home="${COPILOT_HOME:-$HOME/.copilot}"
 
-    echo ""
-    info "Setting up Copilot CLI..."
+    info "Checking GitHub Copilot CLI"
+    ensure_symlink "$AGENTS_MD" "$copilot_home/copilot-instructions.md"
+    setup_shared_skills
 
-    # Symlink AGENTS.md -> copilot-instructions.md
-    create_symlink "$AGENTS_MD" "$instructions_md"
-
-    # Configure skills directory in config.json
-    update_json_config "$config_file" "skill_directories" "[\"$SKILLS_DIR\"]"
-
-    # Symlink MCP config (Copilot uses ~/.copilot/mcp-config.json)
     if [[ -f "$COPILOT_MCP_CONFIG" ]]; then
-        create_symlink "$COPILOT_MCP_CONFIG" "$mcp_config_file"
+        ensure_symlink "$COPILOT_MCP_CONFIG" "$copilot_home/mcp-config.json"
     else
-        warn "Copilot MCP config not found at $COPILOT_MCP_CONFIG (skipping)"
+        warn "Copilot MCP config is absent; skipping it."
     fi
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Main
-# ─────────────────────────────────────────────────────────────────────────────
+should_configure() {
+    local agent="$1"
+
+    if [[ "$SELECTED_AGENT" == "all" || "$SELECTED_AGENT" == "$agent" ]]; then
+        return 0
+    fi
+    if [[ -n "$SELECTED_AGENT" ]]; then
+        return 1
+    fi
+    has_command "$agent"
+}
+
 main() {
-    echo ""
-    echo "═══════════════════════════════════════════════════════════════════"
-    echo "  Agent Skills Setup"
-    echo "  Repository: $SCRIPT_DIR"
-    echo "═══════════════════════════════════════════════════════════════════"
-
-    # Verify source files exist
-    if [[ ! -f "$AGENTS_MD" ]]; then
-        error "AGENTS.md not found at $AGENTS_MD"
-        exit 1
-    fi
-    if [[ ! -d "$SKILLS_DIR" ]]; then
-        error "Skills directory not found at $SKILLS_DIR"
+    if [[ ! -f "$AGENTS_MD" || ! -d "$SKILLS_DIR" ]]; then
+        error "Run this script from a complete agents repository checkout."
         exit 1
     fi
 
-    local found_agents=0
+    local configured=0
 
-    # Detect and setup each agent
-    if has_command claude; then
+    if should_configure claude; then
         setup_claude
-        ((found_agents++)) || true
-    else
-        info "Claude Code not found (skipping)"
+        configured=$((configured + 1))
     fi
-
-    if has_command codex; then
+    if should_configure codex; then
         setup_codex
-        ((found_agents++)) || true
-    else
-        info "Codex CLI not found (skipping)"
+        configured=$((configured + 1))
     fi
-
-    if has_command copilot; then
+    if should_configure copilot; then
         setup_copilot
-        ((found_agents++)) || true
-    else
-        info "Copilot CLI not found (skipping)"
+        configured=$((configured + 1))
     fi
 
-    echo ""
-    echo "═══════════════════════════════════════════════════════════════════"
-    if [[ $found_agents -eq 0 ]]; then
-        warn "No CLI agents found. Install one of: claude, codex, copilot"
-    else
-        success "Setup complete for $found_agents agent(s)"
+    if ((configured == 0)); then
+        warn "No supported CLI was detected. Use --agent NAME to configure one explicitly."
+        return 0
     fi
-    echo "═══════════════════════════════════════════════════════════════════"
-    echo ""
+
+    if [[ "$CHECK_ONLY" == true ]]; then
+        success "Configuration is valid for $configured agent(s)."
+    else
+        success "Configured $configured agent(s)."
+    fi
 }
 
-main "$@"
+main

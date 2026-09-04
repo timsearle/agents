@@ -1,18 +1,20 @@
 ---
 name: liquid-glass
-description: Definitive guidance for adopting Apple's Liquid Glass design language and SwiftUI/UIKit implementation patterns.
-compatibility: iOS/iPadOS/macOS (Liquid Glass-era SDKs); SwiftUI-first; UIKit/AppKit notes included.
+description: Apply Apple's Liquid Glass design language to navigation and controls using current SwiftUI or lower-level platform APIs. Use for glass effects, floating controls, toolbars, tab bars, and Liquid Glass design reviews.
 allowed-tools: Read
 metadata:
   author: timsearle
-  version: "2.0"
+  version: "2.1"
+  compatibility: iOS, iPadOS, and macOS with Liquid Glass-era SDKs
 ---
 
 # Liquid Glass (Apple) adoption skill
 
 Use this skill when the user asks for Liquid Glass, glassEffect, GlassEffectContainer, glass buttons, floating toolbars/tab bars, translucent navigation layers, or "new Apple design system".
 
-## Core rule (do not violate)
+Verify API signatures and availability against the installed SDK or current Apple documentation before implementation. Project requirements and measured behavior take precedence over examples in this skill.
+
+## Core design principle
 
 Liquid Glass belongs to the navigation/controls layer floating above content, not the content layer itself.
 - Use for: toolbars, navigation bars, tab bars, floating control clusters, sheets/popovers/menus.
@@ -21,7 +23,7 @@ Liquid Glass belongs to the navigation/controls layer floating above content, no
 ## Sources of truth (use these first)
 
 Official Apple docs (authoritative for names/availability/behavior):
-- Liquid Glass overview: https://docs.developer.apple.com/documentation/technologyoverviews/liquid-glass
+- Liquid Glass overview: https://developer.apple.com/documentation/technologyoverviews/liquid-glass
 - Adopting Liquid Glass: https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass
 - Applying Liquid Glass to custom views: https://developer.apple.com/documentation/SwiftUI/Applying-Liquid-Glass-to-custom-views
 - Landmarks (Liquid Glass): https://developer.apple.com/documentation/SwiftUI/Landmarks-Building-an-app-with-Liquid-Glass

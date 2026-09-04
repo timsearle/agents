@@ -1,92 +1,75 @@
 # agents
 
-Central repository for Tim's agent instructions and skills, following the [Agent Skills](https://agentskills.io) standard.
+Portable personal instructions and focused [Agent Skills](https://agentskills.io) for Codex, Claude Code, and GitHub Copilot CLI.
+
+The global policy is intentionally small. Technology guidance lives in skills, while repository facts and commands belong in each project's own `AGENTS.md`.
 
 ## Contents
 
-| File/Directory | Purpose |
-|----------------|---------|
-| [`AGENTS.md`](./AGENTS.md) | Global agent instructions (coding conventions, work approach, etc.) |
-| [`skills/`](./skills) | Reusable skills with `SKILL.md` files |
-| [`mcp/`](./mcp) | Provider-specific MCP server configs |
+| Path | Purpose |
+|---|---|
+| [`AGENTS.md`](./AGENTS.md) | Cross-project behavior, safety, verification, and git defaults |
+| [`skills/`](./skills) | Reusable skills discovered only when relevant |
+| [`mcp/`](./mcp) | Provider-specific MCP configuration |
+| [`tests/`](./tests) | Isolated setup and skill-structure checks |
 
-### Available Skills
+## Skills
 
-- **[agent-logs](./skills/agent-logs/)** — Standardised log capture and streaming output handling for agent workflows
-- **[bash-conventions](./skills/bash-conventions/)** — Portable, secure, and robust bash script patterns
-- **[cli-tools](./skills/cli-tools/)** — Conventions for macOS/Unix CLI tools and Homebrew distribution
-- **[liquid-glass](./skills/liquid-glass/)** — Adopt Apple Liquid Glass accurately (design + SwiftUI patterns)
-- **[micronaut](./skills/micronaut/)** — Conventions for Micronaut Framework projects with reactive patterns and Azure SDK
-- **[reflect](./skills/reflect/)** — Analyze conversations for corrections and propose updates to AGENTS.md or skills
-- **[swiftui](./skills/swiftui/)** — SwiftUI patterns for toolbars, styled text editing, and WebKit integration
-- **[swiftpm-pipeline](./skills/swiftpm-pipeline/)** — CI + release + Homebrew pipeline for SwiftPM packages
+- **[agent-logs](./skills/agent-logs/)** — Efficient, safe capture of long-running command output
+- **[bash-conventions](./skills/bash-conventions/)** — Secure Bash 3.2+ patterns for macOS and Linux
+- **[cli-tools](./skills/cli-tools/)** — macOS/Unix CLI design and Homebrew distribution
+- **[liquid-glass](./skills/liquid-glass/)** — Focused Apple Liquid Glass design and implementation guidance
+- **[micronaut](./skills/micronaut/)** — Micronaut, reactive, Kotlin AOP, and Azure SDK gotchas
+- **[reflect](./skills/reflect/)** — Convert an explicit reflection request into durable agent guidance
+- **[swift-concurrency-pro](./skills/swift-concurrency-pro/)** — Modern Swift 6.2 concurrency review and implementation guidance
+- **[swift-testing-pro](./skills/swift-testing-pro/)** — Modern Swift Testing, including async tests and XCTest migration
+- **[swiftdata-pro](./skills/swiftdata-pro/)** — SwiftData modeling, predicates, migration, and CloudKit constraints
+- **[swiftui-pro](./skills/swiftui-pro/)** — Modern SwiftUI APIs, architecture, performance, and accessibility
+- **[swiftpm-pipeline](./skills/swiftpm-pipeline/)** — SwiftPM CI, release artifacts, and Homebrew automation
+- **[xcodebuildmcp](./skills/xcodebuildmcp/)** — Correct use of XcodeBuildMCP build, test, run, and UI tools
 
-## Quick Start
+The four `*-pro` Swift skills are pinned, reviewed snapshots of Paul Hudson's MIT-licensed 2026 skills. `xcodebuildmcp` is a pinned snapshot of the official MIT-licensed skill. Exact sources and revisions are recorded in [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).
 
-```bash
-# Clone the repository
-git clone https://github.com/timsearle/agents.git ~/.agents
+## Setup
 
-# Run setup to configure your CLI agents
-~/.agents/setup.sh
-```
-
-The setup script automatically detects which CLI agents you have installed and configures them:
-
-| Agent | Instructions | Skills |
-|-------|-------------|--------|
-| **Claude Code** | `~/.claude/CLAUDE.md` | `~/.claude/skills/` |
-| **Codex CLI** | `~/.codex/AGENTS.md` | `~/.codex/config.toml` |
-| **Copilot CLI** | `~/.copilot/copilot-instructions.md` | `~/.copilot/config.json` |
-
-### Options
+Clone the repository anywhere, then run:
 
 ```bash
-./setup.sh          # Interactive setup (warns before overwriting)
-./setup.sh --force  # Overwrite existing symlinks/config
+./setup.sh
 ```
 
-## How It Works
+By default the script configures installed CLIs. It creates symlinks and does not rewrite Codex's `config.toml` or Copilot's `settings.json`.
 
-The setup script creates symlinks from each agent's expected configuration location to the files in this repository:
-
-```
-~/.claude/CLAUDE.md              → ~/.agents/AGENTS.md
-~/.claude/skills/                → ~/.agents/skills/
-~/.codex/AGENTS.md               → ~/.agents/AGENTS.md
-~/.copilot/copilot-instructions.md → ~/.agents/AGENTS.md
-~/.copilot/mcp-config.json          → ~/.agents/mcp/copilot-mcp-config.json
+```bash
+./setup.sh --check              # Validate without changing anything
+./setup.sh --agent codex        # Configure one CLI even if it is not detected
+./setup.sh --agent all          # Configure every supported CLI
+./setup.sh --force              # Back up conflicts and replace wrong symlinks
 ```
 
-This means:
-1. **Single source of truth** — Edit `AGENTS.md` once, all agents see the changes
-2. **Shared skills** — All agents have access to the same skill definitions
-3. **Version controlled** — Your agent configuration lives in git
+| Agent | Global instructions | Personal skills |
+|---|---|---|
+| Claude Code | `~/.claude/CLAUDE.md` | `~/.claude/skills/` |
+| Codex | `~/.codex/AGENTS.md` | `~/.agents/skills/` |
+| GitHub Copilot CLI | `~/.copilot/copilot-instructions.md` | `~/.agents/skills/` |
 
-## Adding Skills
+Copilot's MCP file is linked separately at `~/.copilot/mcp-config.json`. Codex and Copilot both support the shared Agent Skills location, so the installer no longer writes deprecated custom skill-directory settings.
 
-Create a new directory under `skills/` with a `SKILL.md` file:
+Restart or open a new agent session after adding or updating skills; active sessions may retain their original skill catalog.
 
-```
-skills/
-└── my-skill/
-    ├── SKILL.md          # Required: instructions + metadata
-    ├── scripts/          # Optional: executable code
-    ├── references/       # Optional: documentation
-    └── assets/           # Optional: templates, resources
-```
+## Validation
 
-The `SKILL.md` must have YAML frontmatter:
-
-```markdown
----
-name: my-skill
-description: What this skill does and when to use it.
----
-
-# My Skill
-
-Instructions for the agent...
+```bash
+bash -n setup.sh tests/setup_test.sh
+tests/setup_test.sh
+python3 tests/validate_skills.py
+shellcheck setup.sh tests/setup_test.sh
 ```
 
-See the [Agent Skills Specification](https://agentskills.io/specification) for full details.
+The setup test uses an isolated temporary home and verifies idempotency, conflict detection, and preservation of existing agent settings.
+
+## Adding or updating skills
+
+Each `skills/<name>/SKILL.md` needs YAML frontmatter containing a matching lowercase `name` and a specific description that says when the skill should be used. Keep the entry file concise; move detailed material into `references/` and reusable files into `assets/` or `scripts/`.
+
+For third-party skills, review every instruction and bundled executable before import. Preserve the license, record the source repository and exact commit, and rerun all validation after updating the snapshot.

@@ -1,43 +1,41 @@
 ---
 name: swiftpm-pipeline
-description: Standard CI + release + Homebrew pipeline for Tim's SwiftPM packages.
-compatibility: GitHub Actions; SwiftPM packages (CLI or libraries).
-allowed-tools: Bash(git:*) Bash(gh:*)
+description: Design or modernize CI, release, artifact, and Homebrew automation for Swift Package Manager libraries and executables. Use when creating or reviewing SwiftPM GitHub Actions and release pipelines.
 metadata:
   author: timsearle
-  version: "0.2"
+  version: "1.0"
+  compatibility: GitHub Actions and SwiftPM packages
 ---
 
-# SwiftPM pipeline conventions
+# SwiftPM pipelines
 
-Use this skill when setting up or standardising CI/release automation for a Swift Package.
+Inspect `Package.swift`, its `swift-tools-version`, supported platforms, existing workflows, and release conventions before choosing runner or toolchain versions. Never paste a permanently pinned Swift version from this skill into every repository.
 
-For CLI-specific conventions (naming, flags, help output), see also: `$cli-tools`
+For CLI UX and Homebrew formula conventions, also use the `cli-tools` skill when relevant.
 
-## Goals
+## CI
 
-- CI runs `swift test` on push/PR.
-- Release workflow builds a **zip asset** containing the executable at the zip root (for Homebrew).
-- Releases are treated as **immutable** (never overwrite assets for an existing tag).
-- Homebrew formula updates are automated via `timsearle/homebrew-tap`'s `update-formula.yml`.
+- Run `swift test` on pull requests and the default branch.
+- Use the oldest supported toolchain/platform when proving compatibility, and a current stable toolchain for forward coverage when the support matrix warrants it.
+- Prefer `macos-latest` unless a package genuinely needs a particular Xcode/macOS image; document any pin and revisit it periodically.
+- Cache only when measurements justify the added invalidation complexity.
+- Grant the workflow the minimum GitHub token permissions, normally `contents: read` for CI.
+- Pin third-party actions to reviewed commit SHAs in security-sensitive or release workflows, with a version comment for maintainability.
 
-## Defaults
+## Releases
 
-- CI runner: `macos-latest`
-- Release runner: `macos-14`
-- Swift: use `swift-actions/setup-swift@v2` pinned to `swift-version: "6.1"` (adjust if the repo's `swift-tools-version` requires newer).
-- Release trigger: **manual** (`workflow_dispatch`) to avoid accidental version churn.
+- Treat released tags and assets as immutable.
+- Build release artifacts from the tag being released, not unrelated branch state.
+- Put the executable at the archive root when a Homebrew formula expects that layout.
+- Generate checksums from the exact uploaded artifact and verify the archive contents before publishing.
+- Keep release creation manual unless the repository has a clearly documented automated versioning policy.
+- Use a narrowly scoped token or GitHub App for cross-repository Homebrew updates; never expose it in logs.
 
-## Required files (copy templates)
+## Verification
 
-- `assets/ci.yml.tmpl` → `.github/workflows/ci.yml`
-- `assets/release.yml.tmpl` → `.github/workflows/release.yml`
+- Validate workflow YAML syntax and inspect the rendered event/permissions behavior.
+- Run package tests locally with a compatible toolchain.
+- For release changes, perform a dry run that builds, archives, lists, and executes the artifact without publishing.
+- Confirm the Homebrew formula's install and test expectations match the produced filename and archive layout.
 
-## Required repo secret
-
-- `HOMEBREW_TAP_TOKEN`: PAT that can run workflows on `timsearle/homebrew-tap`.
-
-## Notes
-
-- Ensure your Homebrew formula exists in the tap repo (`Formula/<tool>.rb`) with literal `url`, `sha256`, `version` lines so automation can patch them.
-- Keep the zip flat: one executable at the zip root, no nested directories.
+Use `assets/ci.yml.tmpl` and `assets/release.yml.tmpl` as starting points only; replace their documented placeholders and align versions with the target repository.

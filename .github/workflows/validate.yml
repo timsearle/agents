@@ -1,0 +1,22 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check shell syntax
+        run: bash -n setup.sh tests/setup_test.sh
+      - name: Run setup tests
+        run: tests/setup_test.sh
+      - name: Validate skills
+        run: python3 tests/validate_skills.py
+      - name: Run ShellCheck
+        run: shellcheck setup.sh tests/setup_test.sh

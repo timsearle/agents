@@ -1,11 +1,11 @@
 ---
 name: cli-tools
 description: Standard conventions for designing, implementing, releasing, and distributing Tim’s macOS/Unix CLI tools (especially those published via Homebrew). Use when creating a new CLI tool, reviewing CLI UX, or upgrading existing tools to a consistent standard.
-compatibility: macOS + Unix-like shells; assumes git, and Homebrew for distribution.
 allowed-tools: Bash(git:*) Bash(gh:*)
 metadata:
   author: timsearle
   version: "1.1"
+  compatibility: macOS and Unix-like shells; assumes git and Homebrew for distribution
 ---
 
 # CLI tool conventions (macOS / Unix)
